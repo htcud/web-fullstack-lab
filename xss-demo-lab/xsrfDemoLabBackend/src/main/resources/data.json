@@ -1,0 +1,31 @@
+{
+  "users": [
+    { "id": 1, "name": "Alice", "email": "alice@example.com", "role": "admin" },
+    { "id": 2, "name": "Bob", "email": "bob@example.com", "role": "user" }
+  ],
+  "posts": [
+    { "id": 1, "userId": 1, "title": "Hello World", "body": "This is my first post", "published": true },
+    { "id": 2, "userId": 2, "title": "Vue + Axios", "body": "Using axios with json-server", "published": false }
+  ],
+  "comments": [
+    { "id": 1, "postId": 1, "name": "Eve", "body": "Nice post!" },
+    { "id": 2, "postId": 1, "name": "Mallory", "body": "Thanks for sharing." }
+  ],
+  "products": [
+    { "id": 1, "name": "T-shirt", "price": 19.99, "stock": 100 },
+    { "id": 2, "name": "Mug", "price": 9.99, "stock": 200 }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "userId": 2,
+      "products": [ { "productId": 1, "quantity": 2 } ],
+      "total": 39.98,
+      "status": "processing"
+    }
+  ],
+  "todos": [
+    { "id": 1, "title": "Learn json-server", "completed": false },
+    { "id": 2, "title": "Build demo app", "completed": false }
+  ]
+}
