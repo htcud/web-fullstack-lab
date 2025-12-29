@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 建议将 groupId 修改为与你的 Java 包名一致，这是一种规范 -->
+    <groupId>com.httpcode</groupId>
+    <artifactId>test</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>test-http-code</name>
+    <description>A simple Spring Boot JSON API demo</description>
+
+    <!-- 修改后 -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.18</version> <!-- 使用一个支持 JDK 8 的 2.x 版本 -->
+        <relativePath/>
+    </parent>
+
+    <properties>
+        <java.version>1.8</java.version> <!-- 将 Java 版本改为 1.8 -->
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+
+    <!-- ====================== 主要修改部分 ====================== -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <!-- 通常情况下，插件会自动找到主类，无需手动配置 -->
+                <!-- 如果自动查找失败，可以手动指定 -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- 可选：如果自动检测失败，可以手动指定主类 -->
+                <!--
+                <configuration>
+                    <mainClass>com.httpcode.test.JsonServerMockApplication</mainClass>
+                </configuration>
+                -->
+            </plugin>
+        </plugins>
+    </build>
+    <!-- ======================================================== -->
+
+</project>
