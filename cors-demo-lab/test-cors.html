@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>CORS 跨域测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            background-color: #f5f5f5;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .warning {
+            color: orange;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>CORS 跨域演示 - 测试工具</h1>
+
+    <div class="test-section">
+        <h2>场景一：不支持跨域 (corsDemoLabBackend)</h2>
+        <p>这个测试会失败，因为后端没有配置 CORS</p>
+        <button onclick="testNoCors()">测试不支持 CORS 的后端</button>
+        <div id="noCorsOutput" class="output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>场景二：支持跨域 (corsDemoLabBackendAfter)</h2>
+        <p>这个测试应该成功，因为后端配置了 CORS</p>
+        <button onclick="testWithCors()">测试支持 CORS 的后端</button>
+        <div id="withCorsOutput" class="output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>调试信息</h2>
+        <p>查看浏览器版本和配置信息</p>
+        <button onclick="showDebugInfo()">显示调试信息</button>
+        <div id="debugOutput" class="output"></div>
+    </div>
+
+    <script>
+        const log = (elementId, message, type = 'info') => {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = `[${timestamp}]`;
+            
+            if (type === 'success') {
+                element.innerHTML += `<span class="success">${prefix} ✓ ${message}</span>\n`;
+            } else if (type === 'error') {
+                element.innerHTML += `<span class="error">${prefix} ✗ ${message}</span>\n`;
+            } else if (type === 'warning') {
+                element.innerHTML += `<span class="warning">${prefix} ⚠ ${message}</span>\n`;
+            } else {
+                element.innerHTML += `${prefix} ${message}\n`;
+            }
+            element.scrollTop = element.scrollHeight;
+        };
+
+        const clear = (elementId) => {
+            document.getElementById(elementId).innerHTML = '';
+        };
+
+        // 测试不支持 CORS 的后端
+        async function testNoCors() {
+            clear('noCorsOutput');
+            log('noCorsOutput', '开始测试 corsDemoLabBackend (不支持CORS)...', 'warning');
+            log('noCorsOutput', '预期结果：请求会被浏览器 CORS 阻止');
+            
+            const api = axios.create({
+                baseURL: 'http://localhost:8080/api',
+                withCredentials: true,
+                timeout: 5000,
+            });
+
+            try {
+                log('noCorsOutput', '发送 OPTIONS 预检请求...');
+                const response = await api.options('/login');
+                log('noCorsOutput', '收到响应，检查 CORS 头...', 'warning');
+                console.log('No CORS Response:', response);
+            } catch (error) {
+                if (error.code === 'ERR_NETWORK' || error.message.includes('CORS')) {
+                    log('noCorsOutput', '✗ 请求被 CORS 阻止（这是预期的）', 'error');
+                    log('noCorsOutput', '错误信息：' + error.message);
+                    log('noCorsOutput', '');
+                    log('noCorsOutput', '后端缺少 CORS 配置，无法处理跨域请求');
+                } else {
+                    log('noCorsOutput', '发生了其他错误：' + error.message, 'error');
+                }
+                console.error('No CORS Error:', error);
+            }
+        }
+
+        // 测试支持 CORS 的后端
+        async function testWithCors() {
+            clear('withCorsOutput');
+            log('withCorsOutput', '开始测试 corsDemoLabBackendAfter (支持CORS)...', 'warning');
+            log('withCorsOutput', '预期结果：请求应该成功');
+            
+            const api = axios.create({
+                baseURL: 'http://localhost:8080/api',
+                withCredentials: true,
+                timeout: 5000,
+            });
+
+            try {
+                log('withCorsOutput', '发送 POST /api/login 请求...');
+                const response = await api.post('/login', {
+                    email: 'alice@example.com',
+                    password: '123456'
+                });
+
+                log('withCorsOutput', '✓ 请求成功！', 'success');
+                log('withCorsOutput', `状态码：${response.status}`);
+                log('withCorsOutput', `响应数据：${JSON.stringify(response.data, null, 2)}`);
+                log('withCorsOutput', '');
+                log('withCorsOutput', '检查响应头中的 CORS 信息：');
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers['access-control-allow-origin'],
+                    'Access-Control-Allow-Credentials': response.headers['access-control-allow-credentials'],
+                    'Access-Control-Expose-Headers': response.headers['access-control-expose-headers'],
+                };
+                log('withCorsOutput', JSON.stringify(corsHeaders, null, 2));
+                
+                console.log('With CORS Response:', response);
+            } catch (error) {
+                log('withCorsOutput', '✗ 请求失败', 'error');
+                log('withCorsOutput', `错误信息：${error.message}`);
+                log('withCorsOutput', `状态码：${error.response?.status}`);
+                log('withCorsOutput', `响应数据：${JSON.stringify(error.response?.data)}`);
+                log('withCorsOutput', '');
+                log('withCorsOutput', '可能的原因：');
+                log('withCorsOutput', '1. 后端服务未启动或运行在不同的端口');
+                log('withCorsOutput', '2. 后端 CORS 配置不正确');
+                log('withCorsOutput', '3. 前端请求配置不正确');
+                console.error('With CORS Error:', error);
+            }
+        }
+
+        // 显示调试信息
+        function showDebugInfo() {
+            clear('debugOutput');
+            log('debugOutput', '浏览器信息：');
+            log('debugOutput', `User Agent: ${navigator.userAgent}`);
+            log('debugOutput', `当前 URL: ${window.location.href}`);
+            log('debugOutput', `当前源: ${window.location.origin}`);
+            log('debugOutput', '');
+            
+            log('debugOutput', '预期配置：');
+            log('debugOutput', '前端：http://localhost:5173');
+            log('debugOutput', '后端 (支持CORS)：http://localhost:8080');
+            log('debugOutput', '');
+            
+            log('debugOutput', '后端 CORS 配置应包含：');
+            log('debugOutput', '- allowedOrigins: http://localhost:5173');
+            log('debugOutput', '- allowCredentials: true');
+            log('debugOutput', '- allowedMethods: GET, POST, PUT, DELETE, OPTIONS');
+            log('debugOutput', '');
+            
+            log('debugOutput', '请在浏览器 F12 → Network 标签检查：');
+            log('debugOutput', '- OPTIONS 预检请求是否发送');
+            log('debugOutput', '- 响应头是否包含 Access-Control-Allow-Origin');
+            log('debugOutput', '- 响应头是否包含 Access-Control-Allow-Credentials');
+        }
+    </script>
+</body>
+</html>
